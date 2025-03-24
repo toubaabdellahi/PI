@@ -18,11 +18,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from authapp import urls
+from .views import *
 
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('authapp.urls')),
+    path('api/auth/upload-pdf/',upload_pdf, name='upload_pdf'),
+    path('api/auth/list-pdfs/<str:user_id>/', list_pdfs, name='list_pdfs'),
+    path('api/auth/download-pdf/<str:file_id>/', download_pdf, name='download_pdf'),
 
 ]
+

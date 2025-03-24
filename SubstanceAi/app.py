@@ -36,26 +36,26 @@ def register_user():
 # Fonction pour la connexion
 
 def login_user():
-    identifier = st.text_input("Email or Username")  # Champ pour email ou username
+    identifier = st.text_input("Email or Username")
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        # Vérification si les champs sont remplis
         if identifier and password:
-            # Envoi des données de connexion à l'API
             data = {
-                "identifier": identifier,  # Envoie l'identifiant qui peut être un email ou un username
+                "identifier": identifier,
                 "password": password
             }
             response = requests.post(f"{BASE_URL}login/", data=json.dumps(data), headers={'Content-Type': 'application/json'})
             
             if response.status_code == 200:
+                # Récupérer les données de la réponse
+                response_data = response.json()
                 st.success("Login successful!")
                 st.session_state["user_authenticated"] = True
                 st.session_state["user_name"] = identifier
-                st.rerun() 
-                
-                # Tu peux ici stocker le token JWT dans une session ou un cookie
+                # Stocker l'ID utilisateur
+                st.session_state["user_id"] = response_data.get("user_id")  # Assurez-vous que l'API renvoie bien l'ID
+                st.rerun()
             else:
                 st.error(f"Login failed: {response.text}")
         else:
@@ -77,31 +77,159 @@ def google_login():
     st.markdown(f'<a href="{auth_url}" target="_self">Login with Google</a>', unsafe_allow_html=True)
 
 def show_home():
-    # Récupérer les paramètres de l'URL en utilisant la méthode nouvelle
+    # Récupérer les paramètres de l'URL
     query_params = st.query_params
     user_name = query_params.get('user', [None])[0]
+    
     if "user_authenticated" in st.session_state and st.session_state["user_authenticated"]:
-        st.title(f"Welcome, {st.session_state['user_name']}!")
-        st.write("This is your home page.")
+        st.title(f"Bienvenue, {st.session_state['user_name']}!")
     elif user_name:
         st.title(f"Bienvenue, {user_name}!")
-        st.write("Ceci est votre page d'accueil.")
     else:
         st.write("Vous devez vous connecter pour voir cette page.")
+        return
+    
+    st.write("Ceci est votre page d'accueil.")
+    
+    # Ajouter des options pour gérer les PDF directement sur la page d'accueil
+    st.subheader("Gestion de vos documents PDF")
+    
+    option = st.radio(
+        "Que souhaitez-vous faire ?",
+        ["Uploader un PDF", "Consulter mes PDFs"]
+    )
+    
+    if option == "Uploader un PDF":
+        upload_pdf_ui()
+    elif option == "Consulter mes PDFs":
+        list_pdfs_ui()
 
-
+def upload_pdf_ui():
+    st.subheader("Upload de PDF") 
+    # Essayons d'obtenir l'ID utilisateur de plusieurs façons
+    user_id = None
+    
+    # Option 1: Extraire directement de l'URL
+    query_params = st.query_params
+    user_from_url = query_params.get('user', None)
+    if user_from_url:
+        user_id = user_from_url    
+    # Option 2: Vérifier dans la session_state
+    elif "user_id" in st.session_state:
+        user_id = st.session_state["user_id"]
+    
+    # Option 3: Utiliser le nom d'utilisateur comme ID temporaire
+    elif "user_name" in st.session_state:
+        user_id = st.session_state["user_name"]
+    
+    # Continuer seulement si nous avons un ID utilisateur
+    if not user_id:
+        st.error("Impossible d'identifier l'utilisateur")
+        return
+    
+    uploaded_file = st.file_uploader("Choisir un fichier PDF", type="pdf")
+    
+    if uploaded_file is not None:
+        if st.button("Uploader ce fichier"):
+            # Création du formulaire multipart avec l'ID utilisateur trouvé
+            files = {'file': (uploaded_file.name, uploaded_file.getvalue(), 'application/pdf')}
+            data = {'user_id': user_id}
+            
+            try:
+                # Utilisez l'URL complète pour éviter les problèmes de chemin relatif
+                upload_url = f"{BASE_URL}upload-pdf/"
+                
+                response = requests.post(upload_url, files=files, data=data)
+                
+                if response.status_code == 200:
+                    st.success("PDF uploadé avec succès!")
+                    # st.json(response.json())
+                else:
+                    st.error(f"Échec de l'upload: {response.status_code}")
+                    st.error(response.text)
+            except Exception as e:
+                st.error(f"Erreur lors de la requête: {str(e)}")
+def list_pdfs_ui(): 
+    st.subheader("Mes documents PDF")
+    
+    # Déboguer les valeurs de session
+    st.write("Contenu de session_state (debug):", st.session_state)
+    
+    # Récupérer l'ID utilisateur avec plus d'options
+    user_id = None
+    
+    # Option 1: Extraire directement de l'URL (ajout de cette partie)
+    query_params = st.query_params
+    user_from_url = query_params.get('user', None)
+    if user_from_url:
+        user_id = user_from_url
+    # Vérifier les différentes possibilités de stockage de l'ID
+    elif "user_id" in st.session_state:
+        user_id = st.session_state["user_id"]
+    elif "user_name" in st.session_state:
+        user_id = st.session_state["user_name"]
+    elif "username" in st.session_state:
+        user_id = st.session_state["username"]
+    elif "email" in st.session_state:
+        user_id = st.session_state["email"]
+    
+    # # Ajouter la possibilité de saisir manuellement l'ID utilisateur si nécessaire
+    # if not user_id:
+    #     user_id = st.text_input("Veuillez entrer votre identifiant utilisateur:")
+    
+    # if not user_id:
+    #     st.error("Impossible d'identifier l'utilisateur. Veuillez vous connecter à nouveau.")
+    #     return
+    
+    # Le reste du code reste identique
+    try:
+        response = requests.get(f"{BASE_URL}list-pdfs/{user_id}/")
+        
+        if response.status_code == 200:
+            files = response.json().get('files', [])
+            if not files:
+                st.info("Vous n'avez pas encore de fichiers PDF")
+            else:
+                for file in files:
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.write(f"📄 {file.get('filename', 'Sans nom')}")
+                    with col2:
+                        file_id = file.get('_id')
+                        if file_id:
+                            download_url = f"{BASE_URL}download-pdf/{file_id}/"
+                            st.markdown(f'<a href="{download_url}" target="_blank">📥 Télécharger</a>', unsafe_allow_html=True)
+        else:
+            st.error(f"Erreur lors de la récupération des fichiers: {response.status_code}")
+            st.error(response.text)
+    except Exception as e:
+        st.error(f"Erreur lors de la requête: {str(e)}")
 
 # Fonction principale de Streamlit
+# Modifiez votre fonction main() pour inclure ces nouvelles pages
 def main():
-    
-    
     query_params = st.query_params
     user_name = query_params.get('user', [None])[0]
+    user_id = query_params.get('user_id', None)  # Ajoutez l'ID utilisateur comme paramètre dans l'URL de redirection
+    
+    if user_id:
+        st.session_state["user_id"] = user_id
+        st.session_state["user_authenticated"] = True
+        st.session_state["user_name"] = user_name
 
     if "user_authenticated" in st.session_state and st.session_state["user_authenticated"]:
-        show_home()  # Afficher la page d'accueil si l'utilisateur est authentifié
-    elif user_name :
-        show_home() 
+        # Menu principal pour utilisateur authentifié
+        menu = ["Accueil", "Upload PDF", "Mes PDFs"]
+        choice = st.sidebar.selectbox("Navigation", menu)
+        
+        if choice == "Accueil":
+            show_home()
+        elif choice == "Upload PDF":
+            upload_pdf_page()
+        elif choice == "Mes PDFs":
+            list_pdfs_page()
+    elif user_name:
+        show_home()
     else:
         st.title("User Authentication")
         
@@ -110,11 +238,10 @@ def main():
         choice = st.sidebar.selectbox("Select an option", menu)
 
         if choice == "Register":
-            register_user()  # Si l'utilisateur veut s'inscrire
+            register_user()
         elif choice == "Login":
-            # Affichage de la possibilité de se connecter via Google ou avec des identifiants classiques
-            google_login()  # Bouton de connexion Google
-            login_user()  # Connexion classique avec email/username + mot de passe
+            google_login()
+            login_user()
 
 if __name__ == "__main__":
     main()
