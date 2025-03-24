@@ -45,21 +45,70 @@ def login_user():
                 "identifier": identifier,
                 "password": password
             }
-            response = requests.post(f"{BASE_URL}login/", data=json.dumps(data), headers={'Content-Type': 'application/json'})
             
-            if response.status_code == 200:
-                # Récupérer les données de la réponse
-                response_data = response.json()
-                st.success("Login successful!")
-                st.session_state["user_authenticated"] = True
-                st.session_state["user_name"] = identifier
-                # Stocker l'ID utilisateur
-                st.session_state["user_id"] = response_data.get("user_id")  # Assurez-vous que l'API renvoie bien l'ID
-                st.rerun()
-            else:
-                st.error(f"Login failed: {response.text}")
+            try:
+                # Désactiver le suivi automatique des redirections
+                response = requests.post(
+                    f"{BASE_URL}login/", 
+                    data=json.dumps(data), 
+                    headers={'Content-Type': 'application/json'},
+                    allow_redirects=False
+                )
+                
+                # Vérifier si la réponse est une redirection
+                if response.status_code in [301, 302, 303, 307, 308]:
+                    redirect_url = response.headers.get('Location', '')
+                    st.write(f"Debug - URL de redirection: {redirect_url}")
+                    
+                    # Extraire le paramètre utilisateur de l'URL
+                    from urllib.parse import urlparse, parse_qs
+                    parsed_url = urlparse(redirect_url)
+                    query_params = parse_qs(parsed_url.query)
+                    
+                    if 'user' in query_params:
+                        username = query_params['user'][0]
+                        st.success(f"Connexion réussie! Bienvenue {username}")
+                        
+                        # Enregistrer les informations dans la session
+                        st.session_state["user_authenticated"] = True
+                        st.session_state["user_name"] = username
+                        
+                        # Définir les paramètres d'URL pour les autres pages
+                        st.experimental_set_query_params(user=username)
+                        
+                        # Recharger la page
+                        st.rerun()
+                    else:
+                        st.error("Paramètre utilisateur manquant dans la redirection")
+                
+                # Si c'est une réponse JSON standard (en cas de modification du backend)
+                elif response.status_code == 200:
+                    try:
+                        response_data = response.json()
+                        st.success("Connexion réussie!")
+                        st.session_state["user_authenticated"] = True
+                        st.session_state["user_name"] = identifier
+                        # Stocker l'ID utilisateur s'il est disponible
+                        if "user" in response_data and "_id" in response_data["user"]:
+                            st.session_state["user_id"] = response_data["user"]["_id"]
+                        st.rerun()
+                    except json.JSONDecodeError:
+                        st.error("Format de réponse invalide")
+                        st.write("Contenu de la réponse:", response.text)
+                
+                # En cas d'erreur d'authentification
+                else:
+                    try:
+                        error_data = response.json()
+                        error_message = error_data.get("error", "Erreur inconnue")
+                    except:
+                        error_message = response.text
+                    st.error(f"Échec de la connexion: {error_message}")
+            
+            except Exception as e:
+                st.error(f"Erreur lors de la requête: {str(e)}")
         else:
-            st.error("Please fill in all fields.")
+            st.error("Veuillez remplir tous les champs.")
 
 GOOGLE_OAUTH2_LOGIN_URL = "https://accounts.google.com/o/oauth2/auth"
 GOOGLE_CLIENT_ID = "76497721292-2fmahu68t6r2vaiupdmq6rbbtqsm3jq5.apps.googleusercontent.com"
@@ -152,8 +201,8 @@ def upload_pdf_ui():
 def list_pdfs_ui(): 
     st.subheader("Mes documents PDF")
     
-    # Déboguer les valeurs de session
-    st.write("Contenu de session_state (debug):", st.session_state)
+    # # Déboguer les valeurs de session
+    # st.write("Contenu de session_state (debug):", st.session_state)
     
     # Récupérer l'ID utilisateur avec plus d'options
     user_id = None
@@ -225,9 +274,9 @@ def main():
         if choice == "Accueil":
             show_home()
         elif choice == "Upload PDF":
-            upload_pdf_page()
+            upload_pdf_ui()
         elif choice == "Mes PDFs":
-            list_pdfs_page()
+            list_pdfs_ui()
     elif user_name:
         show_home()
     else:

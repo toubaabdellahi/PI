@@ -43,11 +43,11 @@ def register(request):
 
 @api_view(['POST'])
 def login(request):
-    identifier = request.data.get('identifier')  # Peut être soit email soit username
+    identifier = request.data.get('identifier')
     password = request.data.get('password')
 
     # Vérifie si l'identifiant est un email ou un username
-    if '@' in identifier:  # On suppose que s'il y a un '@', c'est un email
+    if '@' in identifier:
         user_data = User.find_by_email(identifier)
     else:
         user_data = User.find_by_username(identifier)
@@ -55,8 +55,13 @@ def login(request):
     if user_data and User.verify_password(user_data['password'], password):
         # Convertir ObjectId en string
         user_data['_id'] = str(user_data['_id'])
-        # return Response({"message": "Connexion réussie", "user": user_data}, status=status.HTTP_200_OK)
-        return redirect(f"http://localhost:8501/?user={user_data['username']}")
+        
+        # Retourner une réponse JSON avec l'URL vers laquelle rediriger
+        return Response({
+            "message": "Connexion réussie", 
+            "user": user_data,
+            "redirect_url": f"http://localhost:8501/?user={user_data['username']}"
+        }, status=status.HTTP_200_OK)
 
     return Response({"error": "Email/Username ou mot de passe incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
 
