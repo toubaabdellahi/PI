@@ -1,8 +1,27 @@
 import streamlit as st
+from datetime import datetime
 import requests
 import json
 import streamlit as st
 from urllib.parse import urlparse, parse_qs
+import warnings
+from streamlit.runtime.state.session_state_proxy import SessionStateProxy
+
+# Désactiver le warning spécifique
+warnings.filterwarnings("ignore", category=UserWarning, message=".*st.session_state.file_description cannot be modified.*")
+import contextlib
+import io
+
+@contextlib.contextmanager
+def suppress_st_warnings():
+    with io.StringIO() as buffer:
+        import sys
+        old_stderr = sys.stderr
+        sys.stderr = buffer
+        try:
+            yield
+        finally:
+            sys.stderr = old_stderr
 BASE_URL = "http://127.0.0.1:8000/api/auth/"
 # Fonction pour l'inscription
 def register_user():
@@ -153,51 +172,125 @@ def show_home():
     elif option == "Consulter mes PDFs":
         list_pdfs_ui()
 
+
+
 def upload_pdf_ui():
-    st.subheader("Upload de PDF") 
-    # Essayons d'obtenir l'ID utilisateur de plusieurs façons
+    st.subheader("Upload de PDF")
+
+    # Obtenir l'ID utilisateur
     user_id = None
-    
-    # Option 1: Extraire directement de l'URL
     query_params = st.query_params
     user_from_url = query_params.get('user', None)
     if user_from_url:
         user_id = user_from_url    
-    # Option 2: Vérifier dans la session_state
     elif "user_id" in st.session_state:
         user_id = st.session_state["user_id"]
-    
-    # Option 3: Utiliser le nom d'utilisateur comme ID temporaire
     elif "user_name" in st.session_state:
         user_id = st.session_state["user_name"]
     
-    # Continuer seulement si nous avons un ID utilisateur
     if not user_id:
         st.error("Impossible d'identifier l'utilisateur")
         return
     
-    uploaded_file = st.file_uploader("Choisir un fichier PDF", type="pdf")
+    # Initialisation des états
+    if 'file_description_value' not in st.session_state:
+        st.session_state.file_description_value = ''
+    if 'upload_success' not in st.session_state:
+        st.session_state.upload_success = False
+    if 'success_message' not in st.session_state:
+        st.session_state.success_message = ''
     
+    # Afficher le message de succès s'il existe
+    if st.session_state.upload_success:
+        st.success(st.session_state.success_message)
+        # Réinitialiser après affichage
+        st.session_state.upload_success = False
+        st.session_state.success_message = ''
+    
+    uploaded_file = st.file_uploader("Choisir un fichier PDF", type="pdf")
+
     if uploaded_file is not None:
-        if st.button("Uploader ce fichier"):
-            # Création du formulaire multipart avec l'ID utilisateur trouvé
-            files = {'file': (uploaded_file.name, uploaded_file.getvalue(), 'application/pdf')}
-            data = {'user_id': user_id}
+        # CSS personnalisé
+        st.markdown("""
+        <style>
+            /* Conteneur flex */
+            .stHorizontalBlock {
+                display: flex;
+                align-items: flex-end;
+                gap: 10px;
+            }
             
-            try:
-                # Utilisez l'URL complète pour éviter les problèmes de chemin relatif
-                upload_url = f"{BASE_URL}upload-pdf/"
-                
-                response = requests.post(upload_url, files=files, data=data)
-                
-                if response.status_code == 200:
-                    st.success("PDF uploadé avec succès!")
-                    # st.json(response.json())
+            /* Style de l'input */
+            .stTextInput>div>div>input {
+                border: 8px 10px solid #4CAF50;
+                border-radius: 5px;
+                padding: 8px;
+                height: 38px;
+                flex-grow: 1;
+            }
+            
+            /* Style du bouton avec bordure épaisse */
+            div.stButton > button {
+                height: 38px;
+                white-space: nowrap;
+                margin-bottom: 1px;
+                border: 10px solid #4CAF50 !important;
+                border-radius: 5px !important;
+                font-weight: bold;
+                width: 200px;
+                padding: 0 25px;
+                background-color: #4CAF50;
+                color: white;
+            }
+            
+            /* Effet au survol */
+            div.stButton > button:hover {
+                border: 3px solid #3e8e41 !important;
+                background-color: #3e8e41;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+
+        col1, col2 = st.columns([4, 1])
+        
+        with col1:
+            user_input = st.text_input(
+                "Description du fichier",
+                placeholder="Entrez une description...",
+                key="file_description_widget"
+            )
+        
+        with col2:
+            if st.button("Uploader", key="upload_btn"):
+                if not user_input.strip():
+                    st.warning("Veuillez entrer une description avant d'uploader")
                 else:
-                    st.error(f"Échec de l'upload: {response.status_code}")
-                    st.error(response.text)
-            except Exception as e:
-                st.error(f"Erreur lors de la requête: {str(e)}")
+                    files = {'file': (uploaded_file.name, uploaded_file.getvalue(), 'application/pdf')}
+                    data = {
+                        'user_id': user_id,
+                        'description': user_input,
+                        'filename': uploaded_file.name,
+                        'upload_date': datetime.now().isoformat()
+                    }
+
+                    try:
+                        response = requests.post(
+                            f"{BASE_URL}upload-pdf/",
+                            files=files,
+                            data=data
+                        )
+                        
+                        if response.status_code == 200:
+                            # Stocker le message de succès dans session_state
+                            st.session_state.upload_success = True
+                            st.session_state.success_message = f"Fichier uploadé avec la description: '{user_input}'"
+                            st.session_state.file_description_value = ""
+                            st.rerun()
+                        else:
+                            st.error(f"Erreur {response.status_code}: {response.text}")
+                    except Exception as e:
+                        st.error(f"Erreur de connexion: {str(e)}")
+
 def list_pdfs_ui(): 
     st.subheader("Mes documents PDF")
     
