@@ -171,9 +171,108 @@ def show_home():
         upload_pdf_ui()
     elif option == "Consulter mes PDFs":
         list_pdfs_ui()
+        
+API_URL = "http://127.0.0.1:8000/api/enregistrer_reponses/" 
+
+<<<<<<< HEAD
 
 
+=======
+#fonction test profile
+def profiling_test():
+   
+    st.markdown("""
+        <style>
+            body { background-color: #87CEFA; }
+            .stApp { background: linear-gradient(to right, #FFFFFF); padding: 20px; }
+            .title { text-align: center; font-size: 40px !important; font-weight: bold; color: #000000; }
+            .question { font-size: 24px !important; font-weight: bold; color: #333; margin-bottom: 10px; }
+            .stButton>button {
+                border-radius: 8px;
+                background-color: #AFEEEE;
+                color: #000000;
+                padding: 10px;
+                font-size: 14px;
+            }
+            .stButton>button:hover { background-color: #00FFFF; }
+        </style>
+    """, unsafe_allow_html=True)
 
+    st.markdown("<p class='title'>Test de Profil Apprentissage</p>", unsafe_allow_html=True)
+
+    if "etape" not in st.session_state:
+        st.session_state.etape = 1
+        st.session_state.reponses = {}
+
+    st.progress(min(st.session_state.etape / 5, 1.0))
+
+    def envoyer_donnees():
+    # Récupérer l'ID de l'utilisateur depuis la session
+        user_id = (
+            st.session_state.get("user_id") or 
+            st.session_state.get("user_name") or 
+            st.query_params.get("user", [None])[0]
+        )
+
+        if user_id:
+            st.session_state.reponses["user_id"] = user_id  # 🧠 Ajout ici
+            response = requests.post(API_URL, json=st.session_state.reponses)
+            if response.status_code == 200:
+                st.success("✅ Profil enregistré avec succès !")
+            else:
+                st.error("❌ Erreur lors de l'enregistrement.")
+        else:
+            st.error("Impossible d'identifier l'utilisateur.")
+
+
+    with st.container():
+        if st.session_state.etape == 1:
+            st.markdown("<p class='question'>Quel est le sujet que vous souhaitez apprendre ?</p>", unsafe_allow_html=True)
+            sujet = st.text_input("", key="sujet")
+            if st.button("Suivant"):
+          
+                if sujet.strip():
+                    st.session_state.reponses["Sujet"] = sujet.strip()
+                    st.session_state.etape = 2
+                    st.rerun()
+
+        elif st.session_state.etape == 2:
+            st.markdown("<p class='question'>Quel type d’explication préférez-vous ?</p>", unsafe_allow_html=True)
+            explication = st.radio("", ["Exemples concrets", "Concepts théoriques"])
+            if st.button("Suivant"):
+                st.session_state.reponses["Style d'explication"] = explication
+                st.session_state.etape = 3
+                st.rerun()
+
+        elif st.session_state.etape == 3:
+            st.markdown("<p class='question'>Quel est votre style d’apprentissage préféré ?</p>", unsafe_allow_html=True)
+            style = st.radio("", ["Guidé pas à pas", "Exploration libre", "À mon rythme"])
+            if st.button("Suivant"):
+                st.session_state.reponses["Style d'apprentissage"] = style
+                st.session_state.etape = 4
+                st.rerun()
+
+        elif st.session_state.etape == 4:
+            st.markdown("<p class='question'>Combien d’heures par semaine pouvez-vous consacrer ?</p>", unsafe_allow_html=True)
+            temps = st.radio("", ["1-2h", "3-5h", "6-10h"])
+            if st.button("Suivant"):
+                st.session_state.reponses["Temps disponible"] = temps
+                st.session_state.etape = 5
+                st.rerun()
+        elif st.session_state.etape == 5:
+            st.markdown("<p class='question'>Quel format de contenu préférez-vous ?</p>", unsafe_allow_html=True)
+            format_pref = st.radio("", ["Articles", "Résumé interactif", "Quiz"])
+            if st.button("Terminer le test"):
+                envoyer_donnees()  
+                st.session_state["profiling_done"] = True
+                st.success("Test de profilage terminé !")
+                #st.session_state["step"] = "upload" 
+                st.rerun()
+       
+
+
+#fonction upload
+>>>>>>> faf0cf4b2172e677682d694e28a6306ce7cd9644
 def upload_pdf_ui():
     st.subheader("Upload de PDF")
 
@@ -353,29 +452,44 @@ def main():
     query_params = st.query_params
     user_name = query_params.get('user', [None])[0]
     user_id = query_params.get('user_id', None)  # Ajoutez l'ID utilisateur comme paramètre dans l'URL de redirection
-    
+
     if user_id:
         st.session_state["user_id"] = user_id
         st.session_state["user_authenticated"] = True
         st.session_state["user_name"] = user_name
+        # On commence par le test de profilage
+        st.session_state["step"] = "profiling"
 
-    if "user_authenticated" in st.session_state and st.session_state["user_authenticated"]:
-        # Menu principal pour utilisateur authentifié
-        menu = ["Accueil", "Upload PDF", "Mes PDFs"]
-        choice = st.sidebar.selectbox("Navigation", menu)
-        
-        if choice == "Accueil":
-            show_home()
-        elif choice == "Upload PDF":
+    if st.session_state.get("user_authenticated"):
+        step = st.session_state.get("step", "profiling")
+
+        if step == "profiling":
+            profiling_test()
+            # Une fois terminé, on passe à l'upload
+            if st.session_state.get("profiling_done"):  # Cette variable doit être définie dans profiling_test()
+                st.session_state["step"] = "upload"
+                st.rerun()
+
+        elif step == "upload":
             upload_pdf_ui()
-        elif choice == "Mes PDFs":
-            list_pdfs_ui()
+            # Ensuite, navigation normale
+            st.session_state["step"] = "menu"
+            st.rerun()
+
+        else:  # Navigation normale après le flux imposé
+            menu = ["Accueil", "Upload PDF", "Mes PDFs"]
+            choice = st.sidebar.selectbox("Navigation", menu)
+
+            if choice == "Accueil":
+                show_home()
+            elif choice == "Upload PDF":
+                upload_pdf_ui()
+            elif choice == "Mes PDFs":
+                list_pdfs_ui()
     elif user_name:
         show_home()
     else:
         st.title("User Authentication")
-        
-        # Menu de connexion (classique ou Google)
         menu = ["Login", "Register"]
         choice = st.sidebar.selectbox("Select an option", menu)
 

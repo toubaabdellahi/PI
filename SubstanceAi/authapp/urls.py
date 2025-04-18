@@ -7,4 +7,5 @@ urlpatterns = [
     path('login/', login, name='login'),
     path('login/google/', google_callback, name='google_callback'),
     path('login/google/callback/', google_callback, name='google_callback'), 
+     
 ]
