@@ -31,3 +31,4 @@ def download_pdf(request, file_id):
         return response
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+

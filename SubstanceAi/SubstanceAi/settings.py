@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'social_django',
+    'profilapp',
 ]
 
 AUTHENTICATION_BACKENDS = [
