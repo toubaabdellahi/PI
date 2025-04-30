@@ -22,7 +22,10 @@ def suppress_st_warnings():
             yield
         finally:
             sys.stderr = old_stderr
+
 BASE_URL = "http://127.0.0.1:8000/api/auth/"
+API_URL = "http://127.0.0.1:8000/api/enregistrer_reponses/" 
+
 # Fonction pour l'inscription
 def register_user():
     fullname = st.text_input("Full Name")
@@ -53,7 +56,6 @@ def register_user():
             st.error("Please fill in all fields.")
 
 # Fonction pour la connexion
-
 def login_user():
     identifier = st.text_input("Email or Username")
     password = st.text_input("Password", type="password")
@@ -141,7 +143,6 @@ def google_login():
         f"&response_type=code"
         f"&scope=email%20profile"
     )
-    # st.write(f"Redirecting to: {auth_url}")
     st.markdown(f'<a href="{auth_url}" target="_self">Login with Google</a>', unsafe_allow_html=True)
 
 def show_home():
@@ -171,16 +172,9 @@ def show_home():
         upload_pdf_ui()
     elif option == "Consulter mes PDFs":
         list_pdfs_ui()
-        
-API_URL = "http://127.0.0.1:8000/api/enregistrer_reponses/" 
 
-<<<<<<< HEAD
-
-
-=======
 #fonction test profile
 def profiling_test():
-   
     st.markdown("""
         <style>
             body { background-color: #87CEFA; }
@@ -207,7 +201,7 @@ def profiling_test():
     st.progress(min(st.session_state.etape / 5, 1.0))
 
     def envoyer_donnees():
-    # Récupérer l'ID de l'utilisateur depuis la session
+        # Récupérer l'ID de l'utilisateur depuis la session
         user_id = (
             st.session_state.get("user_id") or 
             st.session_state.get("user_name") or 
@@ -215,7 +209,7 @@ def profiling_test():
         )
 
         if user_id:
-            st.session_state.reponses["user_id"] = user_id  # 🧠 Ajout ici
+            st.session_state.reponses["user_id"] = user_id
             response = requests.post(API_URL, json=st.session_state.reponses)
             if response.status_code == 200:
                 st.success("✅ Profil enregistré avec succès !")
@@ -224,20 +218,18 @@ def profiling_test():
         else:
             st.error("Impossible d'identifier l'utilisateur.")
 
-
     with st.container():
         if st.session_state.etape == 1:
             st.markdown("<p class='question'>Quel est le sujet que vous souhaitez apprendre ?</p>", unsafe_allow_html=True)
             sujet = st.text_input("", key="sujet")
             if st.button("Suivant"):
-          
                 if sujet.strip():
                     st.session_state.reponses["Sujet"] = sujet.strip()
                     st.session_state.etape = 2
                     st.rerun()
 
         elif st.session_state.etape == 2:
-            st.markdown("<p class='question'>Quel type d’explication préférez-vous ?</p>", unsafe_allow_html=True)
+            st.markdown("<p class='question'>Quel type d'explication préférez-vous ?</p>", unsafe_allow_html=True)
             explication = st.radio("", ["Exemples concrets", "Concepts théoriques"])
             if st.button("Suivant"):
                 st.session_state.reponses["Style d'explication"] = explication
@@ -245,7 +237,7 @@ def profiling_test():
                 st.rerun()
 
         elif st.session_state.etape == 3:
-            st.markdown("<p class='question'>Quel est votre style d’apprentissage préféré ?</p>", unsafe_allow_html=True)
+            st.markdown("<p class='question'>Quel est votre style d'apprentissage préféré ?</p>", unsafe_allow_html=True)
             style = st.radio("", ["Guidé pas à pas", "Exploration libre", "À mon rythme"])
             if st.button("Suivant"):
                 st.session_state.reponses["Style d'apprentissage"] = style
@@ -253,7 +245,7 @@ def profiling_test():
                 st.rerun()
 
         elif st.session_state.etape == 4:
-            st.markdown("<p class='question'>Combien d’heures par semaine pouvez-vous consacrer ?</p>", unsafe_allow_html=True)
+            st.markdown("<p class='question'>Combien d'heures par semaine pouvez-vous consacrer ?</p>", unsafe_allow_html=True)
             temps = st.radio("", ["1-2h", "3-5h", "6-10h"])
             if st.button("Suivant"):
                 st.session_state.reponses["Temps disponible"] = temps
@@ -266,13 +258,8 @@ def profiling_test():
                 envoyer_donnees()  
                 st.session_state["profiling_done"] = True
                 st.success("Test de profilage terminé !")
-                #st.session_state["step"] = "upload" 
                 st.rerun()
-       
 
-
-#fonction upload
->>>>>>> faf0cf4b2172e677682d694e28a6306ce7cd9644
 def upload_pdf_ui():
     st.subheader("Upload de PDF")
 
@@ -309,7 +296,6 @@ def upload_pdf_ui():
     uploaded_file = st.file_uploader("Choisir un fichier PDF", type="pdf")
 
     if uploaded_file is not None:
-        # CSS personnalisé
         st.markdown("""
         <style>
             /* Conteneur flex */
@@ -393,18 +379,13 @@ def upload_pdf_ui():
 def list_pdfs_ui(): 
     st.subheader("Mes documents PDF")
     
-    # # Déboguer les valeurs de session
-    # st.write("Contenu de session_state (debug):", st.session_state)
-    
     # Récupérer l'ID utilisateur avec plus d'options
     user_id = None
     
-    # Option 1: Extraire directement de l'URL (ajout de cette partie)
     query_params = st.query_params
     user_from_url = query_params.get('user', None)
     if user_from_url:
         user_id = user_from_url
-    # Vérifier les différentes possibilités de stockage de l'ID
     elif "user_id" in st.session_state:
         user_id = st.session_state["user_id"]
     elif "user_name" in st.session_state:
@@ -414,15 +395,6 @@ def list_pdfs_ui():
     elif "email" in st.session_state:
         user_id = st.session_state["email"]
     
-    # # Ajouter la possibilité de saisir manuellement l'ID utilisateur si nécessaire
-    # if not user_id:
-    #     user_id = st.text_input("Veuillez entrer votre identifiant utilisateur:")
-    
-    # if not user_id:
-    #     st.error("Impossible d'identifier l'utilisateur. Veuillez vous connecter à nouveau.")
-    #     return
-    
-    # Le reste du code reste identique
     try:
         response = requests.get(f"{BASE_URL}list-pdfs/{user_id}/")
         
@@ -447,17 +419,15 @@ def list_pdfs_ui():
         st.error(f"Erreur lors de la requête: {str(e)}")
 
 # Fonction principale de Streamlit
-# Modifiez votre fonction main() pour inclure ces nouvelles pages
 def main():
     query_params = st.query_params
     user_name = query_params.get('user', [None])[0]
-    user_id = query_params.get('user_id', None)  # Ajoutez l'ID utilisateur comme paramètre dans l'URL de redirection
+    user_id = query_params.get('user_id', None)
 
     if user_id:
         st.session_state["user_id"] = user_id
         st.session_state["user_authenticated"] = True
         st.session_state["user_name"] = user_name
-        # On commence par le test de profilage
         st.session_state["step"] = "profiling"
 
     if st.session_state.get("user_authenticated"):
@@ -465,18 +435,16 @@ def main():
 
         if step == "profiling":
             profiling_test()
-            # Une fois terminé, on passe à l'upload
-            if st.session_state.get("profiling_done"):  # Cette variable doit être définie dans profiling_test()
+            if st.session_state.get("profiling_done"):
                 st.session_state["step"] = "upload"
                 st.rerun()
 
         elif step == "upload":
             upload_pdf_ui()
-            # Ensuite, navigation normale
             st.session_state["step"] = "menu"
             st.rerun()
 
-        else:  # Navigation normale après le flux imposé
+        else:
             menu = ["Accueil", "Upload PDF", "Mes PDFs"]
             choice = st.sidebar.selectbox("Navigation", menu)
 
@@ -501,5 +469,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
-
