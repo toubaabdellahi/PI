@@ -9,7 +9,7 @@ from social_django.utils import psa
 import requests
 from django.http import JsonResponse
 from django.contrib.auth import login
-
+from datetime import datetime
 from pymongo import MongoClient
 
 # Connexion à MongoDB
@@ -74,57 +74,99 @@ REDIRECT_URI = "http://localhost:8000/api/auth/login/google/callback/"
 
 
 
+from bson import ObjectId
+from django.shortcuts import redirect
+import requests
+from django.http import JsonResponse
+
 def google_callback(request):
-    # Récupérer le code d'autorisation
+
     code = request.GET.get("code")
+
     if not code:
+
         return JsonResponse({"error": "Code not provided"}, status=400)
 
-    # Logique pour récupérer le token et les infos de l'utilisateur
+
+    # Récupération du token
+
     token_url = "https://oauth2.googleapis.com/token"
+
     data = {
+
         "code": code,
+
         "client_id": GOOGLE_CLIENT_ID,
+
         "client_secret": GOOGLE_CLIENT_SECRET,
+
         "redirect_uri": REDIRECT_URI,
+
         "grant_type": "authorization_code",
+
     }
+
     response = requests.post(token_url, data=data)
+
     token_info = response.json()
 
+
     if "access_token" not in token_info:
+
         return JsonResponse({"error": "Failed to obtain access token"}, status=400)
+
 
     access_token = token_info["access_token"]
 
-    # Récupérer les informations de l'utilisateur via l'API Google
+
+    # Récupération des infos utilisateur
+
     user_info_url = "https://www.googleapis.com/oauth2/v1/userinfo"
+
     headers = {"Authorization": f"Bearer {access_token}"}
+
     user_response = requests.get(user_info_url, headers=headers)
 
+
     if user_response.status_code != 200:
+
         return JsonResponse({"error": "Failed to fetch user info"}, status=400)
+
 
     user_data = user_response.json()
 
-    # Vérifier si l'utilisateur existe déjà dans la base de données
+
+    # Vérifier si l'utilisateur existe déjà
+
     user = users_collection.find_one({"email": user_data['email']})
+
     
+
     if not user:
-        # Si l'utilisateur n'existe pas, le créer dans MongoDB sans mot de passe
-        users_collection.insert_one({
+
+        # Créer l'utilisateur
+
+        result = users_collection.insert_one({
+
             "email": user_data['email'],
+
             "name": user_data.get("name"),
+
             "profile_picture": user_data.get("picture"),
+
             "google_id": user_data.get("id"),
+
             "verified_email": user_data.get("verified_email"),
+
         })
 
-    # Retourner un message de succès
-    return redirect(f"http://localhost:8501/?user={user_data['name']}")
+        user_id = str(result.inserted_id)  # Récupérer l'ObjectId après insertion
+
+    else:
+
+        user_id = str(user['_id'])  # Récupérer l'_id existant
 
 
+    # Rediriger avec l’ID MongoDB correct
 
-
-
-
+    return redirect(f"http://localhost:8501/?user={user_data['name']}&id={user_id}")

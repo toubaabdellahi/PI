@@ -144,6 +144,7 @@ def google_login():
         f"&scope=email%20profile"
     )
     st.markdown(f'<a href="{auth_url}" target="_self">Login with Google</a>', unsafe_allow_html=True)
+    
 
 def show_home():
     # Récupérer les paramètres de l'URL
@@ -209,12 +210,13 @@ def profiling_test():
         )
 
         if user_id:
+            st.session_state.reponses["user_id"] = user_id  
             st.session_state.reponses["user_id"] = user_id
             response = requests.post(API_URL, json=st.session_state.reponses)
             if response.status_code == 200:
-                st.success("✅ Profil enregistré avec succès !")
+                st.success(" Profil enregistré avec succès !")
             else:
-                st.error("❌ Erreur lors de l'enregistrement.")
+                st.error(" Erreur lors de l'enregistrement.")
         else:
             st.error("Impossible d'identifier l'utilisateur.")
 
@@ -424,9 +426,13 @@ def main():
     user_name = query_params.get('user', [None])[0]
     user_id = query_params.get('user_id', None)
 
-    if user_id:
-        st.session_state["user_id"] = user_id
+    
+    if 'user_authenticated' not in st.session_state and 'user' in query_params and 'id' in query_params:
         st.session_state["user_authenticated"] = True
+        st.session_state["user_name"] = query_params["user"][0]
+        st.session_state["user_id"] = query_params["id"]
+
+        # On commence par le test de profilage
         st.session_state["user_name"] = user_name
         st.session_state["step"] = "profiling"
 
