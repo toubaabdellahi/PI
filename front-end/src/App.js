@@ -7,13 +7,13 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import { ProtectedRoute } from "./ProtectedRoute";
 import GoogleAuthSuccess from "./pages/GoogleAuthSuccess";
-
 function App() {
   return (
     <div>
       <BrowserRouter>
         <Routes>
           <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
           <Route
