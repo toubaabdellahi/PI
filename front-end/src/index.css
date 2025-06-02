@@ -5,9 +5,191 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.acceuil {
+  background-color: rgba(255, 255, 255, 1.0);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+}
+
+.acceuil .div {
+  background: linear-gradient(200deg,
+      rgba(26, 115, 232, 0) 0%,
+      rgba(159, 196, 246, 1) 100%);
+  background-color: rgba(255, 255, 255, 1.0);
+  height: 1024px;
+  position: relative;
+  width: 1440px;
+}
+
+.acceuil .navbar {
+  align-items: center;
+  background-color: #ffffff;
+  display: flex;
+  height: 84px;
+  justify-content: center;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 1440px;
+}
+
+.acceuil .content {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  width: 1170px;
+}
+
+.acceuil .left-side {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 50px;
+  position: relative;
+}
+
+.acceuil .logo {
+  height: 33.14px;
+  position: relative;
+  width: 116px;
+}
+
+.acceuil .div-2 {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 40px;
+  position: relative;
+}
+
+.acceuil .text-wrapper-2 {
+  color: #1a73e8;
+  font-family: var(--desktop-body-1-bold-font-family);
+  font-size: var(--desktop-body-1-bold-font-size);
+  font-style: var(--desktop-body-1-bold-font-style);
+  font-weight: var(--desktop-body-1-bold-font-weight);
+  letter-spacing: var(--desktop-body-1-bold-letter-spacing);
+  line-height: var(--desktop-body-1-bold-line-height);
+  margin-top: -1.00px;
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.acceuil .right-side {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 25px;
+  position: relative;
+}
+
+.acceuil .world {
+  height: 24px !important;
+  position: relative !important;
+  width: 24px !important;
+}
+
+.acceuil .divider {
+  background-color: var(--light-100);
+  height: 20px;
+  opacity: 0.2;
+  position: relative;
+  width: 1px;
+}
+
+.acceuil .text-wrapper-3 {
+  color: #1a73e8;
+  font-family: var(--desktop-body-1-bold-font-family);
+  font-size: var(--desktop-body-1-bold-font-size);
+  font-style: var(--desktop-body-1-bold-font-style);
+  font-weight: var(--desktop-body-1-bold-font-weight);
+  letter-spacing: var(--desktop-body-1-bold-letter-spacing);
+  line-height: var(--desktop-body-1-bold-line-height);
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.acceuil .blue-button-instance {
+  flex: 0 0 auto !important;
+}
+
+.acceuil .top-side {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  left: 366px;
+  position: absolute;
+  top: 316px;
+  width: 708px;
+}
+
+.acceuil .text {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 30px;
+  position: relative;
+  width: 100%;
+}
+
+.acceuil .p {
+  align-self: stretch;
+  color: var(--light-100);
+  font-family: "Inter-SemiBold", Helvetica;
+  font-size: 78px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: normal;
+  margin-top: -1.00px;
+  position: relative;
+  text-align: center;
+}
+
+.acceuil .text-wrapper-4 {
+  align-self: stretch;
+  color: var(--light-100);
+  font-family: "Inter-SemiBold", Helvetica;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 30px;
+  position: relative;
+  text-align: center;
+}
+
+.acceuil .buttons {
+  align-items: flex-start;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 40px;
+  position: relative;
+}
+
+.acceuil .design-component-instance-node {
+  border-radius: 8px !important;
+  flex: 0 0 auto !important;
+  height: 64px !important;
+  overflow: hidden !important;
+}
+
+.acceuil .white-1-filled-button {
+  border-radius: 8px !important;
+  flex: 0 0 auto !important;
 }
