@@ -1,4 +1,4 @@
-import React from 'react'; // Add this line
+import React from "react"; // Add this line
 // // src/pages/GoogleAuthSuccess.jsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -12,10 +12,10 @@ function GoogleAuthSuccess() {
 
     if (token) {
       localStorage.setItem("token", token);
-      navigate("/home");
+      navigate("/pdf-manager");
     } else {
       //  On attend un petit délai pour laisser l'URL se charger correctement
-      setTimeout(() => { }, 1000);
+      setTimeout(() => {}, 1000);
     }
   }, [navigate]);
 
