@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+
 import {
   Box,
   TextField,
@@ -61,7 +63,11 @@ function PdfManager() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showWelcome, setShowWelcome] = useState(true);
 
-  const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
+  const decoded = jwtDecode(token);
+  const userId = decoded.user_id;
+
+  // const userId = localStorage.getItem("userId");
   const userName = localStorage.getItem("userName");
 
   const logout = () => {
