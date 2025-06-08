@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import axios from "axios";
 import {
   Box,
   TextField,
@@ -19,8 +19,8 @@ import {
   AppBar,
   Toolbar,
   // Avatar,
-  Chip
-} from '@mui/material';
+  Chip,
+} from "@mui/material";
 import {
   AttachFile as AttachFileIcon,
   Send as SendIcon,
@@ -29,47 +29,44 @@ import {
   Add as AddIcon,
   Logout as LogoutIcon,
   // Settings as SettingsIcon
-} from '@mui/icons-material';
-
+} from "@mui/icons-material";
 
 const NewChatButton = styled(Button)(({ theme }) => ({
-  borderRadius: '12px',
-  padding: '12px 24px',
-  margin: '16px',
+  borderRadius: "12px",
+  padding: "12px 24px",
+  margin: "16px",
   backgroundColor: theme.palette.primary.main,
-  color: 'white',
+  color: "white",
   fontWeight: 500,
-  fontSize: '0.875rem',
-  textTransform: 'none',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-  transition: 'all 0.3s ease',
-  '&:hover': {
+  fontSize: "0.875rem",
+  textTransform: "none",
+  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+  transition: "all 0.3s ease",
+  "&:hover": {
     backgroundColor: theme.palette.primary.dark,
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
+    transform: "translateY(-2px)",
+    boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
   },
-  '& .MuiButton-startIcon': {
-    marginRight: '8px'
-  }
+  "& .MuiButton-startIcon": {
+    marginRight: "8px",
+  },
 }));
 
 function PdfManager() {
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showWelcome, setShowWelcome] = useState(true);
 
-  const userId = localStorage.getItem('userId');
-  const userName = localStorage.getItem('userName');
+  const userId = localStorage.getItem("userId");
+  const userName = localStorage.getItem("userName");
 
   const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userName');
-    window.location.href = '/login';
+    localStorage.removeItem("token");
+    window.location.href = "/login";
   };
 
   const handleFileChange = (e) => {
@@ -82,32 +79,36 @@ function PdfManager() {
 
     const formData = new FormData();
     selectedFiles.forEach((file) => {
-      formData.append('file', file);
+      formData.append("file", file);
     });
-    formData.append('user_id', userId);
-    formData.append('message', message);
+    formData.append("user_id", userId);
+    formData.append("message", message);
 
     try {
       setLoading(true);
-      await axios.post('http://localhost:8000/api/auth/upload-pdf/', formData, {
+      await axios.post("http://localhost:8000/api/auth/upload-pdf/", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
 
       const newChatItem = {
         id: Date.now(),
         text: message,
-        files: selectedFiles.map(f => f.name),
+        files: selectedFiles.map((f) => f.name),
         timestamp: new Date().toLocaleTimeString(),
-        date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        date: new Date().toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }),
       };
-      setChatHistory(prev => [newChatItem, ...prev]);
+      setChatHistory((prev) => [newChatItem, ...prev]);
       setShowWelcome(false);
       setSelectedFiles([]);
-      setMessage('');
+      setMessage("");
     } catch (error) {
-      console.error('Erreur :', error);
+      console.error("Erreur :", error);
       alert("Échec de l'envoi");
     } finally {
       setLoading(false);
@@ -120,18 +121,18 @@ function PdfManager() {
   };
 
   const triggerFileInput = () => {
-    document.getElementById('file-input').click();
+    document.getElementById("file-input").click();
   };
 
   const startNewChat = () => {
-    setMessage('');
+    setMessage("");
     setSelectedFiles([]);
     setShowWelcome(true);
   };
 
   // Grouper l'historique par date
   const groupedHistory = chatHistory.reduce((acc, chat) => {
-    const date = chat.date || 'Autres';
+    const date = chat.date || "Autres";
     if (!acc[date]) {
       acc[date] = [];
     }
@@ -140,33 +141,45 @@ function PdfManager() {
   }, {});
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh', bgcolor: '#f5f7fa' }}>
+    <Box sx={{ display: "flex", height: "100vh", bgcolor: "#f5f7fa" }}>
       <CssBaseline />
 
       {/* Barre d'en-tête */}
-      <AppBar position="fixed" sx={{
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        bgcolor: '#ffffff',
-        color: '#000000',
-        boxShadow: 'none',
-        borderBottom: '1px solid #e0e0e0'
-      }}>
+      <AppBar
+        position="fixed"
+        sx={{
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          bgcolor: "#ffffff",
+          color: "#000000",
+          boxShadow: "none",
+          borderBottom: "1px solid #e0e0e0",
+        }}
+      >
         <Toolbar>
           <IconButton
             color="inherit"
             edge="start"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            sx={{ mr: 2, color: '#000000' }}
+            sx={{ mr: 2, color: "#000000" }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{ flexGrow: 1, fontWeight: "bold" }}
+          >
             Substance IA
           </Typography>
           <Typography variant="subtitle1" sx={{ mr: 2 }}>
             {userName}
           </Typography>
-          <IconButton color="inherit" onClick={logout} sx={{ color: '#000000' }}>
+          <IconButton
+            color="inherit"
+            onClick={logout}
+            sx={{ color: "#000000" }}
+          >
             <LogoutIcon />
           </IconButton>
         </Toolbar>
@@ -180,16 +193,16 @@ function PdfManager() {
         sx={{
           width: 300,
           flexShrink: 0,
-          '& .MuiDrawer-paper': {
+          "& .MuiDrawer-paper": {
             width: 300,
-            boxSizing: 'border-box',
-            marginTop: '64px',
-            bgcolor: '#ffffff',
-            borderRight: '1px solid #e0e0e0'
+            boxSizing: "border-box",
+            marginTop: "64px",
+            bgcolor: "#ffffff",
+            borderRight: "1px solid #e0e0e0",
           },
         }}
       >
-        <Box sx={{ overflow: 'auto' }}>
+        <Box sx={{ overflow: "auto" }}>
           <NewChatButton
             fullWidth
             startIcon={<AddIcon />}
@@ -202,15 +215,18 @@ function PdfManager() {
 
           <List>
             <ListItem>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                <HistoryIcon sx={{ mr: 1, verticalAlign: "middle" }} />
                 History
               </Typography>
             </ListItem>
 
             {Object.entries(groupedHistory).map(([date, chats]) => (
               <React.Fragment key={date}>
-                <Typography variant="caption" sx={{ px: 2, display: 'block', color: 'text.secondary' }}>
+                <Typography
+                  variant="caption"
+                  sx={{ px: 2, display: "block", color: "text.secondary" }}
+                >
                   {date}
                 </Typography>
                 {chats.map((chat) => (
@@ -227,24 +243,25 @@ function PdfManager() {
                         primary={chat.text || "(No text)"}
                         secondary={
                           <>
-                            {chat.files.length > 0 && `Files: ${chat.files.join(', ')}`}
+                            {chat.files.length > 0 &&
+                              `Files: ${chat.files.join(", ")}`}
                             {chat.files.length > 0 && <br />}
                             {chat.timestamp}
                           </>
                         }
                         sx={{
-                          '& .MuiListItemText-primary': {
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            fontSize: '0.875rem'
+                          "& .MuiListItemText-primary": {
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            fontSize: "0.875rem",
                           },
-                          '& .MuiListItemText-secondary': {
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            fontSize: '0.75rem'
-                          }
+                          "& .MuiListItemText-secondary": {
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            fontSize: "0.75rem",
+                          },
                         }}
                       />
                     </ListItem>
@@ -269,33 +286,39 @@ function PdfManager() {
         sx={{
           flexGrow: 1,
           p: 3,
-          marginTop: '64px',
-          marginLeft: sidebarOpen ? '300px' : '0px',
-          transition: (theme) => theme.transitions.create('margin', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          display: 'flex',
-          flexDirection: 'column',
-          height: 'calc(100vh - 64px)'
+          marginTop: "64px",
+          marginLeft: sidebarOpen ? "300px" : "0px",
+          transition: (theme) =>
+            theme.transitions.create("margin", {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
+          display: "flex",
+          flexDirection: "column",
+          height: "calc(100vh - 64px)",
         }}
       >
         {/* Zone de contenu dynamique */}
         {showWelcome && chatHistory.length === 0 ? (
-          <Box sx={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            maxWidth: '800px',
-            margin: '0 auto'
-          }}>
-            <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              maxWidth: "800px",
+              margin: "0 auto",
+            }}
+          >
+            <Typography variant="h4" sx={{ mb: 2, fontWeight: "bold" }}>
               Welcome to the Chatbot
             </Typography>
-            <Typography variant="subtitle1" sx={{ mb: 4, color: 'text.secondary' }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ mb: 4, color: "text.secondary" }}
+            >
               Your Personal AI Companion
             </Typography>
 
@@ -303,18 +326,20 @@ function PdfManager() {
               Explore various subjects
             </Typography>
 
-            <Box sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              gap: 2,
-              mb: 6,
-              maxWidth: '600px'
-            }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                gap: 2,
+                mb: 6,
+                maxWidth: "600px",
+              }}
+            >
               {[
                 "Can you provide an overview of the latest advancements in chatbot intelligence?",
                 "What are some effective strategies for improving productivity and time management?",
-                "How can I enhance my skills in office management departments?"
+                "How can I enhance my skills in office management departments?",
               ].map((text) => (
                 <Chip
                   key={text}
@@ -324,29 +349,38 @@ function PdfManager() {
                     setShowWelcome(false);
                   }}
                   sx={{
-                    borderRadius: '16px',
+                    borderRadius: "16px",
                     p: 1.5,
-                    maxWidth: '100%',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      backgroundColor: 'action.hover'
-                    }
+                    maxWidth: "100%",
+                    cursor: "pointer",
+                    "&:hover": {
+                      backgroundColor: "action.hover",
+                    },
                   }}
                 />
               ))}
             </Box>
 
-            <Paper elevation={0} sx={{
-              p: 3,
-              bgcolor: 'background.paper',
-              borderRadius: '12px',
-              textAlign: 'center',
-              maxWidth: '400px'
-            }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                bgcolor: "background.paper",
+                borderRadius: "12px",
+                textAlign: "center",
+                maxWidth: "400px",
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: "bold", mb: 1 }}
+              >
                 Upgrade Premium
               </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", mb: 2 }}
+              >
                 Basic space map version
               </Typography>
               <Button variant="contained" color="primary">
@@ -355,14 +389,17 @@ function PdfManager() {
             </Paper>
           </Box>
         ) : (
-          <Box sx={{ flex: 1, overflow: 'auto', mb: 2 }}>
+          <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
             {/* Zone d'affichage des messages */}
             {chatHistory.map((chat) => (
-              <Paper key={chat.id} sx={{ p: 2, mb: 2, bgcolor: 'background.paper' }}>
+              <Paper
+                key={chat.id}
+                sx={{ p: 2, mb: 2, bgcolor: "background.paper" }}
+              >
                 <Typography variant="body1">{chat.text}</Typography>
                 {chat.files.length > 0 && (
                   <Typography variant="caption" color="text.secondary">
-                    Files: {chat.files.join(', ')}
+                    Files: {chat.files.join(", ")}
                   </Typography>
                 )}
               </Paper>
@@ -375,14 +412,16 @@ function PdfManager() {
           component="form"
           onSubmit={handleSubmit}
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            borderRadius: '24px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            border: isFocused ? '1px solid #10a37f' : '1px solid rgba(0, 0, 0, 0.1)',
-            transition: 'all 0.2s ease',
+            display: "flex",
+            alignItems: "center",
+            borderRadius: "24px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            border: isFocused
+              ? "1px solid #10a37f"
+              : "1px solid rgba(0, 0, 0, 0.1)",
+            transition: "all 0.2s ease",
             p: 1,
-            bgcolor: 'background.paper'
+            bgcolor: "background.paper",
           }}
         >
           <TextField
@@ -406,7 +445,9 @@ function PdfManager() {
                     edge="start"
                     aria-label="upload file"
                   >
-                    <AttachFileIcon color={selectedFiles.length > 0 ? "primary" : "action"} />
+                    <AttachFileIcon
+                      color={selectedFiles.length > 0 ? "primary" : "action"}
+                    />
                   </IconButton>
                   <input
                     id="file-input"
@@ -422,17 +463,21 @@ function PdfManager() {
                 <InputAdornment position="end">
                   <IconButton
                     type="submit"
-                    disabled={loading || (selectedFiles.length === 0 && !message.trim())}
+                    disabled={
+                      loading || (selectedFiles.length === 0 && !message.trim())
+                    }
                     aria-label="send"
                   >
                     {loading ? (
                       <CircularProgress size={24} />
                     ) : (
-                      <SendIcon color={
-                        selectedFiles.length > 0 || message.trim()
-                          ? "primary"
-                          : "disabled"
-                      } />
+                      <SendIcon
+                        color={
+                          selectedFiles.length > 0 || message.trim()
+                            ? "primary"
+                            : "disabled"
+                        }
+                      />
                     )}
                   </IconButton>
                 </InputAdornment>
@@ -444,7 +489,7 @@ function PdfManager() {
         {selectedFiles.length > 0 && (
           <Box sx={{ mt: 1, px: 2 }}>
             <Typography variant="caption" color="text.secondary">
-              Selected files: {selectedFiles.map(f => f.name).join(', ')}
+              Selected files: {selectedFiles.map((f) => f.name).join(", ")}
             </Typography>
           </Box>
         )}
