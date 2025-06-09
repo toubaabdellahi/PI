@@ -1,9 +1,12 @@
-from django.http import JsonResponse
+from django.http import FileResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from bson import ObjectId
 from .utils import *
 from pymongo import MongoClient
-from pymongo import MongoClient
+from bson import ObjectId
+from gridfs import GridFS
+
+
 
 @csrf_exempt
 def upload_pdf(request):
@@ -39,13 +42,34 @@ def list_pdfs(request, user_id):
         return JsonResponse({'error': str(e)}, status=400)
     
     
+
 def download_pdf(request, file_id):
-    """Télécharge un fichier PDF depuis MongoDB"""
     try:
-        file = get_pdf_from_mongodb(ObjectId(file_id))
-        response = FileResponse(file, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{file.filename}"'
+        # Conversion de l'ID en ObjectId MongoDB
+        file_id = ObjectId(file_id)
+        print(f"Récupération du fichier avec ID: {file_id}")
+        
+        # Connexion à MongoDB
+        MONGO_URI = "mongodb://localhost:27017/SubstanceAi"
+        client = MongoClient(MONGO_URI)
+        db = client.get_database()
+
+        fs = GridFS(db)
+        
+        # Récupération du fichier
+        file = fs.get(file_id)
+        if not file:
+            return JsonResponse({'error': 'Fichier non trouvé'}, status=404)
+        
+        # Création de la réponse
+        response = FileResponse(
+            file,
+            content_type='application/pdf',
+            as_attachment=True,
+            filename=file.filename
+        )
         return response
+        
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 

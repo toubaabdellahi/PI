@@ -18,6 +18,7 @@ from bson import ObjectId
 from rest_framework.decorators import api_view
 from .decorators import jwt_authentication
 
+
 # Connexion à MongoDB
 MONGO_URI = "mongodb://localhost:27017/SubstanceAi"
 client = MongoClient(MONGO_URI)

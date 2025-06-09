@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-
 import {
   Box,
   TextField,
@@ -20,7 +19,6 @@ import {
   CssBaseline,
   AppBar,
   Toolbar,
-  // Avatar,
   Chip,
 } from "@mui/material";
 import {
@@ -30,7 +28,6 @@ import {
   History as HistoryIcon,
   Add as AddIcon,
   Logout as LogoutIcon,
-  // Settings as SettingsIcon
 } from "@mui/icons-material";
 
 const NewChatButton = styled(Button)(({ theme }) => ({
@@ -66,8 +63,6 @@ function PdfManager() {
   const token = localStorage.getItem("token");
   const decoded = jwtDecode(token);
   const userId = decoded.user_id;
-
-  // const userId = localStorage.getItem("userId");
   const userName = localStorage.getItem("userName");
 
   const logout = () => {
@@ -92,14 +87,14 @@ function PdfManager() {
 
     try {
       setLoading(true);
-      await axios.post("http://localhost:8000/api/auth/upload-pdf/", formData, {
+      const response = await axios.post("http://localhost:8000/api/auth/upload-pdf/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
       const newChatItem = {
-        id: Date.now(),
+        id: response.data.file_ids[0], // Utilise l'ObjectId retourné par le backend
         text: message,
         files: selectedFiles.map((f) => f.name),
         timestamp: new Date().toLocaleTimeString(),
@@ -136,7 +131,50 @@ function PdfManager() {
     setShowWelcome(true);
   };
 
-  // Grouper l'historique par date
+  const handleDownload = async (fileId, fileName) => {
+    try {
+      // Validation de l'ID
+      if (!fileId || !/^[0-9a-f]{24}$/i.test(fileId)) {
+        throw new Error(`ID ${fileId} invalide - Format MongoDB requis (24 caractères hexadécimaux)`);
+      }
+
+      const response = await axios.get(
+        `http://localhost:8000/api/auth/download_pdf/${fileId}/`,
+        {
+          responseType: "blob",
+          timeout: 10000,
+        }
+      );
+
+      // Extraction du nom de fichier
+      const contentDisposition = response.headers["content-disposition"];
+      const finalFileName = fileName ||
+        (contentDisposition
+          ? contentDisposition.split("filename=")[1].replace(/"/g, "")
+          : `document_${fileId.slice(-6)}.pdf`);
+
+      // Création du lien de téléchargement
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = finalFileName;
+      document.body.appendChild(link);
+      link.click();
+
+      // Nettoyage
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error) {
+      console.error("Erreur de téléchargement:", {
+        id: fileId,
+        error: error.response?.data || error.message,
+      });
+      alert(error.response?.data?.message || "Échec du téléchargement");
+    }
+  };
+
   const groupedHistory = chatHistory.reduce((acc, chat) => {
     const date = chat.date || "Autres";
     if (!acc[date]) {
@@ -150,7 +188,6 @@ function PdfManager() {
     <Box sx={{ display: "flex", height: "100vh", bgcolor: "#f5f7fa" }}>
       <CssBaseline />
 
-      {/* Barre d'en-tête */}
       <AppBar
         position="fixed"
         sx={{
@@ -181,17 +218,12 @@ function PdfManager() {
           <Typography variant="subtitle1" sx={{ mr: 2 }}>
             {userName}
           </Typography>
-          <IconButton
-            color="inherit"
-            onClick={logout}
-            sx={{ color: "#000000" }}
-          >
+          <IconButton color="inherit" onClick={logout} sx={{ color: "#000000" }}>
             <LogoutIcon />
           </IconButton>
         </Toolbar>
       </AppBar>
 
-      {/* Sidebar */}
       <Drawer
         variant="persistent"
         anchor="left"
@@ -249,8 +281,28 @@ function PdfManager() {
                         primary={chat.text || "(No text)"}
                         secondary={
                           <>
-                            {chat.files.length > 0 &&
-                              `Files: ${chat.files.join(", ")}`}
+                            {chat.files.length > 0 && (
+                              <Box component="span">
+                                Files:{" "}
+                                {chat.files.map((file) => (
+                                  <span
+                                    key={file}
+                                    style={{
+                                      color: "#1976d2",
+                                      textDecoration: "underline",
+                                      cursor: "pointer",
+                                      marginRight: "8px",
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownload(chat.id, file);
+                                    }}
+                                  >
+                                    {file}
+                                  </span>
+                                ))}
+                              </Box>
+                            )}
                             {chat.files.length > 0 && <br />}
                             {chat.timestamp}
                           </>
@@ -286,7 +338,6 @@ function PdfManager() {
         </Box>
       </Drawer>
 
-      {/* Contenu principal */}
       <Box
         component="main"
         sx={{
@@ -304,7 +355,6 @@ function PdfManager() {
           height: "calc(100vh - 64px)",
         }}
       >
-        {/* Zone de contenu dynamique */}
         {showWelcome && chatHistory.length === 0 ? (
           <Box
             sx={{
@@ -396,7 +446,6 @@ function PdfManager() {
           </Box>
         ) : (
           <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
-            {/* Zone d'affichage des messages */}
             {chatHistory.map((chat) => (
               <Paper
                 key={chat.id}
@@ -404,16 +453,31 @@ function PdfManager() {
               >
                 <Typography variant="body1">{chat.text}</Typography>
                 {chat.files.length > 0 && (
-                  <Typography variant="caption" color="text.secondary">
-                    Files: {chat.files.join(", ")}
-                  </Typography>
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Files:{" "}
+                      {chat.files.map((file) => (
+                        <span
+                          key={file}
+                          style={{
+                            color: "#1976d2",
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                            marginRight: "8px",
+                          }}
+                          onClick={() => handleDownload(chat.id, file)}
+                        >
+                          {file}
+                        </span>
+                      ))}
+                    </Typography>
+                  </Box>
                 )}
               </Paper>
             ))}
           </Box>
         )}
 
-        {/* Champ de saisie avec upload */}
         <Paper
           component="form"
           onSubmit={handleSubmit}
