@@ -5,7 +5,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
-import ChatInput from "./pages/ChatInput";
 import ProtectedRoute from "./ProtectedRoute";
 import GoogleAuthSuccess from "./pages/GoogleAuthSuccess";
 import PdfManager from "./pages/PdfManager";
@@ -37,14 +36,7 @@ function App() {
               }
             />
 
-            <Route
-              path="/input"
-              element={
-                <ProtectedRoute>
-                  <ChatInput />
-                </ProtectedRoute>
-              }
-            />
+
           </Routes>
         </ErrorBoundary>
       </BrowserRouter>
