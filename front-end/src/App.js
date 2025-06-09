@@ -18,15 +18,11 @@ function App() {
           <Routes>
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
             <Route
-              path="/home"
-              element={
-                <ProtectedRoute>
-                  <Home />
-                </ProtectedRoute>
-              }
+              path="/google-auth-success"
+              element={<GoogleAuthSuccess />}
             />
+            <Route path="/" element={<Home />} />
             <Route
               path="/pdf-manager"
               element={
