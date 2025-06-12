@@ -31,8 +31,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-
           </Routes>
         </ErrorBoundary>
       </BrowserRouter>

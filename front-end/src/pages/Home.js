@@ -1,6 +1,8 @@
 import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../style.css";
+import aboutImage from "../assets/about-us.png";
+// import { LocationOn, Email, Phone } from "@mui/icons-material";
 
 function Home() {
   const navigate = useNavigate();
@@ -44,7 +46,6 @@ function Home() {
           </button>
         </div>
       </nav>
-
       {/* Sections de la page */}
       <section ref={homeRef} className="hero-section">
         <h1>Welcome to the Substance AI</h1>
@@ -59,17 +60,31 @@ function Home() {
           <button className="video-btn">Watch video</button>
         </div>
       </section>
-
       <section ref={featuresRef} className="section">
         <h2>Fonctionnalités</h2>
         <p>Contenu des fonctionnalités...</p>
       </section>
-
-      <section ref={aboutRef} className="section">
+      {/* <section ref={aboutRef} className="section">
         <h2>À propos</h2>
         <p>Contenu à propos...</p>
+      </section> */}
+      <section ref={aboutRef} className="about-section">
+        <div className="about-container">
+          <div className="about-image">
+            <img src={aboutImage} alt="About SubstanceAI" />
+          </div>
+          <div className="about-content">
+            <h2>ABOUT US</h2>
+            <p className="about-text">
+              SubstancIA révolutionne l'apprentissage en ligne en sélectionnant
+              les meilleures ressources pour vous, les organisant en parcours
+              sur mesure et intégrant des éléments de gamification. Découvrez
+              une expérience éducative immersive, efficace, et parfaitement
+              adaptée à vos besoins.
+            </p>
+          </div>
+        </div>
       </section>
-
       <section ref={contactRef} className="section">
         <h2>Contacts</h2>
         <p>Contenu des contacts...</p>
