@@ -95,6 +95,9 @@ export default function Login() {
         
         //  Rediriger vers /home
         navigate("/home");
+
+        //  Rediriger vers /pdf-manager
+        navigate("/pdf-manager");
       } else {
         alert("Token non reçu depuis le serveur !");
       }

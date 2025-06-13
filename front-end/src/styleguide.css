@@ -1,0 +1,12 @@
+:root {
+    --blue100-normal: rgba(32, 91, 241, 1);
+    --desktop-body-1-bold-font-family: "Urbanist", Helvetica;
+    --desktop-body-1-bold-font-size: 16px;
+    --desktop-body-1-bold-font-style: normal;
+    --desktop-body-1-bold-font-weight: 700;
+    --desktop-body-1-bold-letter-spacing: 0px;
+    --desktop-body-1-bold-line-height: 24px;
+    --light-10: rgba(255, 255, 255, 0.1);
+    --light-100: rgba(255, 255, 255, 1);
+    --medium-blue: 0px 5px 15px 0px rgba(32, 91, 241, 0.2);
+}

@@ -122,6 +122,7 @@ export default function SignUp() {
         // Redirection après inscription
         navigate("/profiling-test");
 
+       
       } else {
         alert("Inscription réussie mais pas de token reçu.");
       }

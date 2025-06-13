@@ -30,8 +30,8 @@ urlpatterns = [
     #path('profilapp/', include('profilapp.urls')),
     
     path('api/auth/upload-pdf/',upload_pdf, name='upload_pdf'),
-    path('api/auth/list-pdfs/<str:user_id>/', list_pdfs, name='list_pdfs'),
-    path('api/auth/download-pdf/<str:file_id>/', download_pdf, name='download_pdf'),
+    path('api/auth/list-pdfs/<str:user_id>/',list_pdfs, name='list_pdfs'),
+    path('api/auth/download_pdf/<str:file_id>/', download_pdf, name='download_pdf'),
    
 
 ]
