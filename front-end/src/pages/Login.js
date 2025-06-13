@@ -92,7 +92,7 @@ export default function Login() {
       if (result.token) {
         //  Stocker le token JWT dans localStorage
         localStorage.setItem("token", result.token);
-
+        
         //  Rediriger vers /home
         navigate("/home");
       } else {
@@ -102,7 +102,7 @@ export default function Login() {
       alert("Erreur réseau ou serveur.");
     }
   };
-
+ 
   return (
     <>
       <CssBaseline />

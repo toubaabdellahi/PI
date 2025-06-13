@@ -1,6 +1,7 @@
-// src/pages/GoogleAuthSuccess.jsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 
 function GoogleAuthSuccess() {
   const navigate = useNavigate();
@@ -9,13 +10,55 @@ function GoogleAuthSuccess() {
     const queryParams = new URLSearchParams(window.location.search);
     const token = queryParams.get("token");
 
-    if (token) {
-      localStorage.setItem("token", token);
-      navigate("/home");
-    } else {
-      //  On attend un petit délai pour laisser l'URL se charger correctement
-      setTimeout(() => {}, 1000);
+    if (!token) {
+      console.error("Token non trouvé dans l'URL");
+      return;
     }
+
+    // 🔐 Sauvegarde du token dans le localStorage
+    localStorage.setItem("token", token);
+
+    let decoded;
+    try {
+      decoded = jwtDecode(token);
+    } catch (error) {
+      console.error("Échec du décodage du token :", error);
+      navigate("/profiling-test");
+      return;
+    }
+
+    const userId = decoded.user_id || decoded.id || decoded.userId;
+
+    if (!userId) {
+      console.error("user_id manquant dans le token");
+      navigate("/profiling-test");
+      return;
+    }
+
+    // 📡 Vérifie si le test de profil est déjà rempli
+    axios.get(`http://localhost:8000/api/profil/recuperer_reponses/${userId}/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+          .then((response) => {
+            if (response.data.profil_complet === true) {
+              navigate("/home"); // il a déjà fait le test
+            } else {
+              navigate("/profiling-test"); // première fois
+            }
+          })
+
+      .catch((error) => {
+        if (error.response && error.response.status === 404) {
+          // 👤 Utilisateur sans test → rediriger vers le test
+          navigate("/profiling-test");
+        } else {
+          console.error("Erreur API :", error);
+          navigate("/profiling-test");
+        }
+      });
+
   }, [navigate]);
 
   return <p>Connexion avec Google en cours...</p>;

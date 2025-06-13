@@ -7,6 +7,9 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import { ProtectedRoute } from "./ProtectedRoute";
 import GoogleAuthSuccess from "./pages/GoogleAuthSuccess";
+import ProfilingTest from './pages/ProfilingTest';
+//import RedirectLogic from "./pages/RedirectLogic";
+
 
 function App() {
   return (
@@ -16,6 +19,10 @@ function App() {
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+          <Route path="/profiling-test" element={<ProfilingTest />} />
+         
+
+
           <Route
             path="/home"
             element={
@@ -29,5 +36,6 @@ function App() {
     </div>
   );
 }
+
 
 export default App;

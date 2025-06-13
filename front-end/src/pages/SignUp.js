@@ -120,7 +120,8 @@ export default function SignUp() {
         localStorage.setItem("user", JSON.stringify(result.user));
 
         // Redirection après inscription
-        navigate("/home");
+        navigate("/profiling-test");
+
       } else {
         alert("Inscription réussie mais pas de token reçu.");
       }

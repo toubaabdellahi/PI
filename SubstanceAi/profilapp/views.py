@@ -33,7 +33,6 @@ def enregistrer_reponses(request):
                 data["user_id"] = user_id  # Assurez-vous que l'ID utilisateur est dans les données
                 collection.insert_one(data)  # Insertion du profil dans MongoDB
                 return JsonResponse({"message": "Nouveau profil créé"}, status=200)
-
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
     
